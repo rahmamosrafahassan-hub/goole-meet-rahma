@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Meet Interactive Quiz</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            direction: ltr;
+            text-align: left;
+        }
+        header {
+            background-color: #1a73e8;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #1a73e8;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 5px;
+            margin-top: 20px;
+        }
+        .login-box, .wheel-container {
+            text-align: center;
+            background: #e8f0fe;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 8px;
+            width: 250px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #1557b0;
+        }
+        #wheel-result {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d93025;
+            margin-top: 15px;
+        }
+        .question-box {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            display: none;
+        }
+        .active-section {
+            display: block;
+        }
+        .feedback {
+            margin-top: 8px;
+            font-weight: bold;
+        }
+        .correct { color: #28a745; }
+        .incorrect { color: #dc3545; }
+        #quiz-content, #score-board {
+            display: none;
+        }
+        #final-score {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1a73e8;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Google Meet & Project Management Quiz</h1>
+        <p>First Preparatory Grade - ICT</p>
+    </header>
+
+    <main>
+        <!-- خطوة إدخال الاسم -->
+        <div id="login-section" class="login-box">
+            <h3>Please enter your name to start the quiz:</h3>
+            <input type="text" id="username" placeholder="Your name here...">
+            <button onclick="startQuiz()">Start Quiz</button>
+        </div>
+
+        <!-- محتوى القويز يظهر بعد إدخال الاسم -->
+        <div id="quiz-content">
+            <h2 id="welcome-msg"></h2>
+
+            <!-- ملخص الدرس -->
+            <section id="summary">
+                <h2>Lesson Summary</h2>
+                <p><strong>Google Meet</strong> is a video conferencing service developed by Google that enables users to conduct group video calls, share screens, chat, and collaborate in real-time[span_0](start_span)[span_0](end_span).</p>
+                <ul>
+                    <li>Requires a <strong>Google Account</strong> to access[span_1](start_span)[span_1](end_span).</li>
+                    <li>Used for direct online communication and group projects[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span).</li>
+                    <li>Key rules: Mute your microphone when others speak, and raise your hand to speak orderly[span_4](start_span)[span_4](end_span).</li>
+                </ul>
+            </section>
+
+            <!-- عجلة الحظ -->
+            <section>
+                <h2>Interactive Spin Wheel</h2>
+                <div class="wheel-container">
+                    <p>Click the wheel to choose a category of questions!</p>
+                    <button onclick="spinWheel()">🎲 Spin the Wheel!</button>
+                    <div id="wheel-result"></div>
+                </div>
+
+                <!-- قسم MCQ -->
+                <div id="mcq-section" class="question-box">
+                    <h3>Multiple Choice Questions (MCQ)</h3>
+                    <div id="mcq-questions"></div>
+                    <button onclick="checkMCQ()">Submit MCQ</button>
+                </div>
+
+                <!-- قسم True or False -->
+                <div id="tf-section" class="question-box">
+                    <h3>True or False Questions</h3>
+                    <div id="tf-questions"></div>
+                    <button onclick="checkTF()">Submit T/F</button>
+                </div>
+
+                <!-- قسم Fill in the blanks -->
+                <div id="fill-section" class="question-box">
+                    <h3>Fill in the Blanks</h3>
+                    <div id="fill-questions"></div>
+                    <button onclick="checkFill()">Submit Fill</button>
+                </div>
+            </section>
+
+            <!-- لوحة النتيجة النهائية -->
+            <div id="score-board">
+                <button onclick="calculateTotalScore()" style="width:100%; background-color: #28a745; margin-top: 20px;">Show Total Final Score</button>
+                <div id="final-score"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let studentName = "";
+
+        function startQuiz() {
+            const nameInput = document.getElementById('username').value.trim();
+            if (nameInput === "") {
+                alert("Please enter your name first!");
+                return;
+            }
+            studentName = nameInput;
+            document.getElementById('login-section').style.display = "none";
+            document.getElementById('quiz-content').style.display = "block";
+            document.getElementById('welcome-msg').textContent = `Welcome, ${studentName}! Let's test your knowledge.`;
+        }
+
+        // الأسئلة (15 سؤالاً)
+        const mcqData = [
+            { q: "1. What is Google Meet?", options: ["A) Storage App", "B) Video conferencing service by Google[span_5](start_span)[span_5](end_span)", "C) Antivirus"], ans: "B" },
+            { q: "2. What is required to access Google Meet?", options: ["A) Google Account[span_6](start_span)[span_6](end_span)", "B) Bank Account", "C) Yahoo Mail Only"], ans: "A" },
+            { q: "3. How do you ask to speak orderly during a meeting?", options: ["A) Shout out", "B) Raise your hand[span_7](start_span)[span_7](end_span)", "C) Leave meeting"], ans: "B" },
+            { q: "4. What can you do during a Google Meet session?", options: ["A) Share screen[span_8](start_span)[span_8](end_span)", "B) Delete Windows", "C) Format hard drive"], ans: "A" },
+            { q: "5. Google Meet is considered a tool for...", options: ["A) Direct communication[span_9](start_span)[span_9](end_span)", "B) Printing files", "C) Scanning papers"], ans: "A" }
+        ];
+
+        const tfData = [
+            { q: "6. Google Meet allows users to conduct group video calls[span_10](start_span)[span_10](end_span).", ans: "true" },
+            { q: "7. You can share your screen with participants in Google Meet[span_11](start_span)[span_11](end_span).", ans: "true" },
+            { q: "8. It is allowed to interrupt the speaker anytime without permission.", ans: "false" },
+            { q: "9. A Google Account is not needed to use Google Meet[span_12](start_span)[span_12](end_span).", ans: "false" },
+            { q: "10. You should turn off your microphone when you are not speaking[span_13](start_span)[span_13](end_span).", ans: "true" }
+        ];
+
+        const fillData = [
+            { q: "11. Google Meet is developed by _________.", ans: "Google" },
+            { q: "12. To raise your hand, you click on the _________ icon[span_14](start_span)[span_14](end_span).", ans: "hand" },
+            { q: "13. You can share your _________ or presentation during the meeting[span_15](start_span)[span_15](end_span).", ans: "screen" },
+            { q: "14. Google Meet supports group video _________[span_16](start_span)[span_16](end_span).", ans: "calls" },
+            { q: "15. The communication type in Google Meet is _________ (direct / indirect).", ans: "direct" }
+        ];
+
+        function loadQuestions() {
+            let mcqHTML = "";
+            mcqData.forEach((item, index) => {
+                mcqHTML += `<p><strong>${item.q}</strong><br>`;
+                item.options.forEach(opt => {
+                    mcqHTML += `<label><input type="radio" name="mcq${index}" value="${opt[0]}"> ${opt}</label><br>`;
+                });
+                mcqHTML += `</p><div id="mcq-fb${index}" class="feedback"></div><hr>`;
+            });
+            document.getElementById('mcq-questions').innerHTML = mcqHTML;
+
+            let tfHTML = "";
+            tfData.forEach((item, index) => {
+                tfHTML += `<p><strong>${item.q}</strong><br>
+                    <label><input type="radio" name="tf${index}" value="true"> True</label>
+                    <label><input type="radio" name="tf${index}" value="false"> False</label>
+                </p><div id="tf-fb${index}" class="feedback"></div><hr>`;
+            });
+            document.getElementById('tf-questions').innerHTML = tfHTML;
+
+            let fillHTML = "";
+            fillData.forEach((item, index) => {
+                fillHTML += `<p><strong>${item.q}</strong><br>
+                    <input type="text" id="fill${index}" placeholder="Your answer...">
+                </p><div id="fill-fb${index}" class="feedback"></div><hr>`;
+            });
+            document.getElementById('fill-questions').innerHTML = fillHTML;
+        }
+
+        loadQuestions();
+
+        function spinWheel() {
+            const sections = ['mcq-section', 'tf-section', 'fill-section'];
+            const names = ['Multiple Choice (MCQ)', 'True or False', 'Fill in the Blanks'];
+            
+            sections.forEach(sec => document.getElementById(sec).classList.remove('active-section'));
+            const randomIndex = Math.floor(Math.random() * sections.length);
+            
+            document.getElementById('wheel-result').textContent = `🎉 Wheel selected: ${names[randomIndex]}!`;
+            
+            setTimeout(() => {
+                document.getElementById(sections[randomIndex]).classList.add('active-section');
+                document.getElementById('score-board').style.display = 'block';
+            }, 500);
+        }
+
+        let score = 0;
+
+        function checkMCQ() {
+            score = 0;
+            mcqData.forEach((item, index) => {
+                const selected = document.querySelector(`input[name="mcq${index}"]:checked`);
+                const fb = document.getElementById(`mcq-fb${index}`);
+                if (!selected) {
+                    fb.textContent = "Please select an answer.";
+                    fb.className = "feedback incorrect";
+                } else if (selected.value === item.ans) {
+                    fb.textContent = "Bravo! Correct answer.";
+                    fb.className = "feedback correct";
+                    score++;
+                } else {
+                    fb.textContent = `Incorrect. The correct answer is (${item.ans}).`;
+                    fb.className = "feedback incorrect";
+                }
+            });
+        }
+
+        function checkTF() {
+            tfData.forEach((item, index) => {
+                const selected = document.querySelector(`input[name="tf${index}"]:checked`);
+                const fb = document.getElementById(`tf-fb${index}`);
+                if (!selected) {
+                    fb.textContent = "Please select an answer.";
+                    fb.className = "feedback incorrect";
+                } else if (selected.value === item.ans) {
+                    fb.textContent = "Bravo! Correct answer.";
+                    fb.className = "feedback correct";
+                    score++;
+                } else {
+                    fb.textContent = `Incorrect. The correct answer is (${item.ans}).`;
+                    fb.className = "feedback incorrect";
+                }
+            });
+        }
+
+        function checkFill() {
+            fillData.forEach((item, index) => {
+                const val = document.getElementById(`fill${index}`).value.trim().toLowerCase();
+                const fb = document.getElementById(`fill-fb${index}`);
+                if (val === "") {
+                    fb.textContent = "Please type an answer.";
+                    fb.className = "feedback incorrect";
+                } else if (val === item.ans.toLowerCase()) {
+                    fb.textContent = "Bravo! Correct answer.";
+                    fb.className = "feedback correct";
+                    score++;
+                } else {
+                    fb.textContent = `Incorrect. The correct answer is (${item.ans}).`;
+                    fb.className = "feedback incorrect";
+                }
+            });
+        }
+
+        function calculateTotalScore() {
+            // حساب الدرجة النهائية لكل Sections لو تم حلهم
+            let totalCorrect = 0;
+            
+            mcqData.forEach((item, index) => {
+                const selected = document.querySelector(`input[name="mcq${index}"]:checked`);
+                if (selected && selected.value === item.ans) totalCorrect++;
+            });
+
+            tfData.forEach((item, index) => {
+                const selected = document.querySelector(`input[name="tf${index}"]:checked`);
+                if (selected && selected.value === item.ans) totalCorrect++;
+            });
+
+            fillData.forEach((item, index) => {
+                const val = document.getElementById(`fill${index}`).value.trim().toLowerCase();
+                if (val === item.ans.toLowerCase()) totalCorrect++;
+            });
+
+            document.getElementById('final-score').textContent = 
+                `🌟 Great Job, ${studentName}! Your Total Score is: ${totalCorrect} / 15`;
+        }
+    </script>
+
+</body>
+</html>
